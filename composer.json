@@ -1,0 +1,30 @@
+{
+    "name": "minz/laravel-qiniu-oss",
+    "description": "laravel qiniu oss library",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "赵敏",
+            "email": "849178781@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.0",
+        "league/flysystem": "^1.0",
+        "qiniu/php-sdk": "^7.2.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Minz\\Laravel\\Qiniu\\OSS\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "\\Minz\\Laravel\\Qiniu\\OSS\\QiniuOssServiceProvider"
+            ]
+        }
+    }
+}
