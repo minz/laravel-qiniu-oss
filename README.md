@@ -1,7 +1,7 @@
 <h1 align="center">laravel qiniu cloud oss</h1>
 
 <p align="center">
-<a href="https://www.aliyun.com/product/oss">qiniu</a> storage for Laravel based on <a href="https://github.com/qiniu/php-sdk">qiniu/php-sdk</a>.
+<a href="https://www.qiniu.com/products/kodo">qiniu</a> storage for Laravel based on <a href="https://github.com/qiniu/php-sdk">qiniu/php-sdk</a>.
 </p>
 
 
