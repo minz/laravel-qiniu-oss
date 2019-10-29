@@ -37,6 +37,13 @@ class QiniuOssAdapter extends AbstractAdapter
         return $this->auth;
     }
 
+    /**
+     * @param string|null $path  bucket下文件夹绝对路径
+     * @param int $expires  过期时间 s
+     * @param array|null $policy 请参照七牛OSS文档
+     * @param bool $strictPolicy
+     * @return string
+     */
     public function getUploadToken(string $path = null, int $expires = 3600, array $policy = null, bool $strictPolicy = true)
     {
         $this->auth = $this->getAuth();
