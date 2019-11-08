@@ -41,13 +41,40 @@ return [
             'driver' => "qiniu",
             'access_key' => env('QINIU_ACCESS_KEY'),
             'access_secret' => env('QINIU_SECRET_KEY'),
-            'bucket' => "your bucket name",
+            'bucket' => env('QINIU_BUCKET'),
+            'domain' => env('QINIU_DOMAIN'),
+            'ssl' => false,  //是否使用ssl协议
         ]
     ]
 ];
 ```
 
 ## Usage
+```php
+$disk = Storage::disk('qiniu');
+
+#是否存在key
+$disk->has($key);
+
+#获取key metadata
+$disk->getMetadata($key);
+
+#获取key size
+$disk->getSize($key);
+
+#获取mimeType
+$disk->getMimetype($key);
+
+#extension
+#获取视频类object时长
+$disk->videoDuration($key)
+
+#获取object baseUrl
+$disk->getUrl($key);
+
+#获取上传token
+$disk->uploadToken("dir1/dir2/demo.mp3")
+```
 
 ## 前端 web 直传配置
 
@@ -56,13 +83,13 @@ oss 直传有三种方式，当前扩展包使用的是最完整的 [服务端�
 ```php
 $disk = Storage::disk('qiniu');
 /**
- * @param string|null $path  bucket下文件夹绝对路径
+ * @param string|null $path 当前存储object的绝对路径，包含当前object name, eg: dir1/dir2/demo.mp3
  * @param int $expires  过期时间 s
  * @param array|null $policy 请参照七牛OSS文档
  * @param bool $strictPolicy
  * @return string
  */
-$config = $disk->getUploadToken($path, $expire, $policy, $strictPolicy);
+$config = $disk->uploadToken($path, $expire, $policy, $strictPolicy);
 ```
 
 ## depend

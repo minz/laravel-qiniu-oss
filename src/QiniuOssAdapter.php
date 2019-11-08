@@ -8,6 +8,7 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use Qiniu\Auth;
+use Qiniu\Storage\BucketManager;
 
 class QiniuOssAdapter extends AbstractAdapter
 {
@@ -15,26 +16,33 @@ class QiniuOssAdapter extends AbstractAdapter
     const ACCESS_PRIVATE = "private";
 
     protected $auth;
+    protected $bucketManager;
+
     private $accessKey;
     private $accessSecret;
     private $bucket;
     private $domains;
-    private $notifyUrl;
-    private $access;
+    private $ssl;
 
-    public function __construct(string $accessKey, string $accessSecret, string $bucket)
+    public function __construct(string $accessKey, string $accessSecret, string $bucket, string $domains, bool $ssl = false)
     {
         $this->accessKey = $accessKey;
         $this->accessSecret = $accessSecret;
         $this->bucket = $bucket;
+        $this->domains = $domains;
+        $this->ssl = $ssl;
+
+        $this->auth = new Auth($this->accessKey, $this->accessSecret);
     }
 
-    private function getAuth()
+    /**
+     * get bucket manager
+     *
+     * @return BucketManager
+     */
+    private function getBucketManager()
     {
-        if ($this->auth == null) {
-            $this->auth = new Auth($this->accessKey, $this->accessSecret);
-        }
-        return $this->auth;
+        return $this->bucketManager ?: $this->bucketManager = new BucketManager($this->auth);
     }
 
     /**
@@ -44,11 +52,53 @@ class QiniuOssAdapter extends AbstractAdapter
      * @param bool $strictPolicy
      * @return string
      */
-    public function getUploadToken(string $path = null, int $expires = 3600, array $policy = null, bool $strictPolicy = true)
+    public function uploadToken(string $path = null, int $expires = 3600, array $policy = null, bool $strictPolicy = true)
     {
-        $this->auth = $this->getAuth();
         $token = $this->auth->uploadToken($this->bucket, $path, $expires, $policy, $strictPolicy);
         return $token;
+    }
+
+    /**
+     * 获取object public url
+     *
+     * @param $key
+     * @return string
+     */
+    public function getUrl($key)
+    {
+        return "{$this->getHosts()}{$this->domains}/{$key}";
+    }
+
+    /**
+     * get hosts
+     *
+     * @return string
+     */
+    private function getHosts()
+    {
+        return $this->ssl ? "https://" : "http://";
+    }
+
+    /**
+     * 获取视频对象视频时长(s)
+     *
+     * @param $key
+     * @return bool|int
+     */
+    public function videoDuration($key)
+    {
+        $baseUrl = $this->getUrl($key) . "?avinfo";
+        $url = $this->auth->privateDownloadUrl($baseUrl);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        if ($response) {
+            $videoObject = json_decode($response);
+            return isset($videoObject->format->duration) ? intval($videoObject->format->duration) : false;
+        }
+        return false;
     }
 
     /**
@@ -192,7 +242,8 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function has($path)
     {
-
+        list($response, $err) = $this->getBucketManager()->stat($this->bucket, $path);
+        return is_array($response) || !$err;
     }
 
     /**
@@ -241,7 +292,27 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function getMetadata($path)
     {
+        list($stats, $err) = $this->getBucketManager()->stat($this->bucket, $path);
+        if ($err) return false;
+        $stats['key'] = $path;
+        return $this->formatFileInfo($stats);
+    }
 
+    /**
+     * 格式化文件meta
+     *
+     * @param array $stats
+     * @return array
+     */
+    private function formatFileInfo(array $stats)
+    {
+        return [
+            "type" => "file",
+            "path" => $stats["key"],
+            "timestamp" => (int)floor($stats["putTime"] / 10000000),
+            "size" => $stats['fsize'],
+            "mimeType" => $stats['mimeType']
+        ];
     }
 
     /**
@@ -253,7 +324,8 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function getSize($path)
     {
-
+        $stats = $this->getMetadata($path);
+        return isset($stats['size']) ? ['size' => $stats['size']] : false;
     }
 
     /**
@@ -265,7 +337,9 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function getMimetype($path)
     {
-
+        $stats = $this->getMetadata($path);
+        $return = isset($stats['mimeType']) ? ["mimetype" => $stats['mimeType']] : false;
+        return $return;
     }
 
     /**
@@ -277,7 +351,7 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function getTimestamp($path)
     {
-
+        
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Minz\Laravel\Qiniu\OSS;
+namespace Minz\Laravel\Qiniu\OSS\Plugins;
 
 
 use League\Flysystem\Plugin\AbstractPlugin;
@@ -15,7 +15,7 @@ class UploadToken extends AbstractPlugin
      */
     public function getMethod()
     {
-        return 'getUploadToken';
+        return 'uploadToken';
     }
 
     /**
@@ -29,6 +29,6 @@ class UploadToken extends AbstractPlugin
      */
     public function handle($prefix = '',  $expire = 30, array $policy = null, bool $strictPolicy = true)
     {
-        return $this->filesystem->getAdapter()->getUploadToken($prefix, $expire,  $policy, $strictPolicy);
+        return $this->filesystem->getAdapter()->uploadToken($prefix, $expire,  $policy, $strictPolicy);
     }
 }
