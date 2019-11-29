@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
 use Minz\Laravel\Qiniu\OSS\Plugins\BaseUrl;
+use Minz\Laravel\Qiniu\OSS\Plugins\Download;
 use Minz\Laravel\Qiniu\OSS\Plugins\UploadToken;
 use Minz\Laravel\Qiniu\OSS\Plugins\VideoDuration;
 
@@ -27,12 +28,15 @@ class QiniuOssServiceProvider extends ServiceProvider
                 $config['access_secret'],
                 $config['bucket'],
                 $config['domain'],
-                $config['ssl']
+                $config['root'],
+                $config['ssl'],
+                $config['public']
             );
             $fileSystem = new Filesystem($adpter);
             $fileSystem->addPlugin(new UploadToken());
             $fileSystem->addPlugin(new VideoDuration());
             $fileSystem->addPlugin(new BaseUrl());
+            $fileSystem->addPlugin(new Download());
 
             return$fileSystem;
         });

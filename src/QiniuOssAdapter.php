@@ -22,15 +22,19 @@ class QiniuOssAdapter extends AbstractAdapter
     private $accessSecret;
     private $bucket;
     private $domains;
+    private $rootDir;
     private $ssl;
+    private $public;
 
-    public function __construct(string $accessKey, string $accessSecret, string $bucket, string $domains, bool $ssl = false)
+    public function __construct(string $accessKey, string $accessSecret, string $bucket, string $domains, string $rootDir, bool $ssl = false, bool $public = false)
     {
         $this->accessKey = $accessKey;
         $this->accessSecret = $accessSecret;
         $this->bucket = $bucket;
         $this->domains = $domains;
+        $this->rootDir = $rootDir;
         $this->ssl = $ssl;
+        $this->public = $public;
 
         $this->auth = new Auth($this->accessKey, $this->accessSecret);
     }
@@ -255,7 +259,12 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function read($path)
     {
-
+        $baseUrl = $this->getUrl($path);
+        if ($this->public == false) {
+            $baseUrl = $this->auth->privateDownloadUrl($baseUrl, 7200);
+        }
+        $contents = file_get_contents($baseUrl);
+        return compact('contents', 'path');
     }
 
     /**
@@ -365,4 +374,33 @@ class QiniuOssAdapter extends AbstractAdapter
     {
 
     }
+
+    /**
+     * 下载文件到指定路径
+     *
+     * @param string $key
+     * @param string|null $path
+     * @param int $expires
+     * @return string
+     */
+    public function download(string $key, string $path = null, int $expires = 3600)
+    {
+        $baseUrl = $this->getUrl($key);
+        if ($this->public == false) {
+            $baseUrl = $this->auth->privateDownloadUrl($baseUrl, $expires);
+        }
+        $hostFileHandle = fopen($baseUrl, 'r');
+        $path = $path ?? $key;
+        $path = $this->rootDir . '/' . $path;
+
+        $fh = fopen($path ?? $key, 'w');
+        while (!feof($hostFileHandle)) {
+            $output = fread($hostFileHandle, 10240);
+            fwrite($fh, $output);
+        }
+        fclose($hostFileHandle);
+        fclose($fh);
+        return $path;
+    }
+
 }

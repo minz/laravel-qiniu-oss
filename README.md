@@ -44,6 +44,8 @@ return [
             'bucket' => env('QINIU_BUCKET'),
             'domain' => env('QINIU_DOMAIN'),
             'ssl' => false,  //是否使用ssl协议
+            'public' => false, //是否为公共读 默认为私有
+            'root' => storage_path('app/public'),
         ]
     ]
 ];
@@ -65,6 +67,9 @@ $disk->getSize($key);
 #获取mimeType
 $disk->getMimetype($key);
 
+#读取文件
+$disk->read($key);
+
 #extension
 #获取视频类object时长
 $disk->videoDuration($key)
@@ -74,11 +79,14 @@ $disk->getUrl($key);
 
 #获取上传token
 $disk->uploadToken("dir1/dir2/demo.mp3")
+
+#下载指定文件
+$disk->downloadFile($key, $localFileName, $expires)
 ```
 
 ## 前端 web 直传配置
 
-oss 直传有三种方式，当前扩展包使用的是最完整的 [服务端签名直传并设置上传回调](https://developer.qiniu.com/kodo/sdk/1241/php) 方式，扩展包只生成前端页面上传所需的签名参数，前端上传实现可参考 [官方文档中的实例](https://help.aliyun.com/document_detail/31927.html?spm=a2c4g.11186623.2.10.5602668eApjlz3#concept-qp2-g4y-5db) 或自行搜索
+oss 直传有三种方式，当前扩展包使用的是最完整的 [服务端签名直传并设置上传回调](https://developer.qiniu.com/kodo/sdk/1241/php) 方式，扩展包只生成前端页面上传所需的签名参数
 
 ```php
 $disk = Storage::disk('qiniu');
