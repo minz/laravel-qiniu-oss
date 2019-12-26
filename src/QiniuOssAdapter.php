@@ -385,10 +385,7 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function download(string $key, string $path = null, int $expires = 3600)
     {
-        $baseUrl = $this->getUrl($key);
-        if ($this->public == false) {
-            $baseUrl = $this->auth->privateDownloadUrl($baseUrl, $expires);
-        }
+        $baseUrl = $this->privateDownloadUrl($key, $expires);
         $hostFileHandle = fopen($baseUrl, 'r');
         $path = $path ?? $key;
         $path = $this->rootDir . '/' . $path;
@@ -403,4 +400,19 @@ class QiniuOssAdapter extends AbstractAdapter
         return $path;
     }
 
+    /**
+     * get kodo private download url
+     *
+     * @param string $key
+     * @param int $expires
+     * @return string
+     */
+    public function privateDownloadUrl(string $key, int $expires = 3600)
+    {
+        $baseUrl = $this->getUrl($key);
+        if ($this->public == false) {
+            $baseUrl = $this->auth->privateDownloadUrl($baseUrl, $expires);
+        }
+        return $baseUrl;
+    }
 }
