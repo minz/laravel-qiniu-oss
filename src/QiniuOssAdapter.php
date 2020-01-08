@@ -412,7 +412,7 @@ class QiniuOssAdapter extends AbstractAdapter
     {
         $baseUrl = $this->getUrl($key);
         if ($alias) {
-            $baseUrl .= "?attname=$alias";
+            $baseUrl .= "?attname=" . urlencode($alias);
         }
         if ($this->public == false) {
             $baseUrl = $this->auth->privateDownloadUrl($baseUrl, $expires);
