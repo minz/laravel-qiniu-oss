@@ -83,8 +83,8 @@ $disk->uploadToken("dir1/dir2/demo.mp3")
 #下载指定文件
 $disk->downloadFile($key, $localFileName, $expires)
 
-#获取下载url,私有bucket会带有token 
-$disk->getDownloadUrl($key, $expires);
+#获取下载url,私有bucket会带有token, alias：别名
+$disk->getDownloadUrl($key, $alias = null, $expires);
 ```
 
 ## 前端 web 直传配置

@@ -404,12 +404,16 @@ class QiniuOssAdapter extends AbstractAdapter
      * get kodo private download url
      *
      * @param string $key
+     * @param string|null $alias
      * @param int $expires
      * @return string
      */
-    public function privateDownloadUrl(string $key, int $expires = 3600)
+    public function privateDownloadUrl(string $key, string $alias = null, int $expires = 3600)
     {
         $baseUrl = $this->getUrl($key);
+        if ($alias) {
+            $baseUrl .= "?attname=$alias";
+        }
         if ($this->public == false) {
             $baseUrl = $this->auth->privateDownloadUrl($baseUrl, $expires);
         }

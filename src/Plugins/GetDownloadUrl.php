@@ -22,11 +22,12 @@ class GetDownloadUrl extends AbstractPlugin
      * get key download url with token.
      *
      * @param string $key
+     * @param string|null $alias
      * @param int $expire
-     * @return string $downloadUrl
+     * @return mixed
      */
-    public function handle(string $key, int $expire = 3600)
+    public function handle(string $key, string $alias = null, int $expire = 3600)
     {
-        return $this->filesystem->getAdapter()->privateDownloadUrl($key, $expire);
+        return $this->filesystem->getAdapter()->privateDownloadUrl($key, $alias, $expire);
     }
 }
