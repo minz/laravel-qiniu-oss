@@ -360,7 +360,7 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function getTimestamp($path)
     {
-        
+
     }
 
     /**
@@ -386,17 +386,33 @@ class QiniuOssAdapter extends AbstractAdapter
     public function download(string $key, string $path = null, int $expires = 3600)
     {
         $baseUrl = $this->privateDownloadUrl($key, $expires);
-        $hostFileHandle = fopen($baseUrl, 'r');
         $path = $path ?? $key;
         $path = $this->rootDir . '/' . $path;
 
         $fh = fopen($path ?? $key, 'w');
-        while (!feof($hostFileHandle)) {
-            $output = fread($hostFileHandle, 10240);
-            fwrite($fh, $output);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'follow_location' => 1,
+                'max_redirects' => 20,
+                'timeout' => 30,
+            ],
+        ]);
+
+        $remoteFile = fopen($baseUrl, 'rb', false, $context);
+        if ($remoteFile === false) {
+            die('无法打开远程文件');
         }
-        fclose($hostFileHandle);
-        fclose($fh);
+
+        $localFile = fopen($fh, 'wb');
+        if ($localFile === false) {
+            die('无法创建本地文件');
+        }
+        while (!feof($remoteFile)) {
+            fwrite($localFile, fread($remoteFile, 1024 * 1024), 1024 * 1024);
+        }
+        fclose($remoteFile);
+        fclose($localFile);
         return $path;
     }
 
