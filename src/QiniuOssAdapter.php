@@ -196,8 +196,11 @@ class QiniuOssAdapter extends AbstractAdapter
      */
     public function delete($path)
     {
+        $error = $this->getBucketManager()->delete($this->bucket, $path);
 
+        return $error === null;
     }
+
 
     /**
      * Delete a directory.
