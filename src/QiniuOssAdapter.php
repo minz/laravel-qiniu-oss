@@ -392,7 +392,11 @@ class QiniuOssAdapter extends AbstractAdapter
         $path = $path ?? $key;
         $path = $this->rootDir . '/' . $path;
 
-        $fh = fopen($path ?? $key, 'w');
+        $fh = fopen($path, 'w');
+        if ($fh === false) {
+            die('无法创建本地文件');
+        }
+
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
@@ -407,17 +411,14 @@ class QiniuOssAdapter extends AbstractAdapter
             die('无法打开远程文件');
         }
 
-        $localFile = fopen($fh, 'wb');
-        if ($localFile === false) {
-            die('无法创建本地文件');
-        }
         while (!feof($remoteFile)) {
-            fwrite($localFile, fread($remoteFile, 1024 * 1024), 1024 * 1024);
+            fwrite($fh, fread($remoteFile, 1024 * 1024), 1024 * 1024);
         }
         fclose($remoteFile);
-        fclose($localFile);
+        fclose($fh);
         return $path;
     }
+
 
     /**
      * get kodo private download url
